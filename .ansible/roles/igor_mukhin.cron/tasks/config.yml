@@ -1,0 +1,11 @@
+---
+
+- name: CRON | Generate config
+  template:
+    src: "{{ cron_template }}"
+    dest: "/etc/cron.d/{{ cron_jobs_group }}"
+    owner: "{{ cron_owner }}"
+    group: "{{ cron_group }}"
+    mode: "{{ cron_mode }}"
+  when: "{{ cron_jobs != false }}"
+  notify: restart cron

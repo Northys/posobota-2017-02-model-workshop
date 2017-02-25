@@ -1,0 +1,84 @@
+---
+server:
+    install: true
+    packages:
+        - vim
+        - git
+        - htop
+        - iotop
+        - zip
+        - unzip
+    timezone: Europe/Prague
+    locale: en_US.UTF-8
+
+# vagrant configuration
+vagrant_local:
+    install: true
+    vm: { base_box: trusty64, hostname: default, ip: 192.168.33.99, memory: '2048', useVagrantCloud: true, syncType: nfs }
+
+# php configuration
+php_enable_php_fpm: true
+php_enable_webserver: false
+php_webserver_daemon: "nginx"
+php_opcache_enable: false
+php_fpm_listen: "127.0.0.1:9000"
+php_fpm_listen_allowed_clients: "127.0.0.1"
+php_fpm_pm_max_children: 50
+php_fpm_pm_start_servers: 5
+php_fpm_pm_min_spare_servers: 5
+php_fpm_pm_max_spare_servers: 5
+php_packages:
+    - php7.0-common
+    - php7.0-cli
+    - php7.0-dev
+    - php7.0-fpm
+    - libpcre3-dev
+    - php7.0-gd
+    - php7.0-curl
+    - php7.0-imap
+    - php7.0-json
+    - php7.0-opcache
+    - php7.0-xml
+    - php7.0-mbstring
+    - php7.0-mysql
+    - php7.0-intl
+    - php7.0-bcmath
+    - php7.0-sqlite3
+
+# xdebug configuration
+php_xdebug_default_enable: true
+php_xdebug_coverage_enable: true
+php_xdebug_cli_enable: true
+php_xdebug_idekey: phpstorm
+php_xdebug_remote_enable: true
+php_xdebug_remote_connect_back: true
+
+# nginx configuration
+nginx_remove_default_vhost: true
+nginx_error_log: "/var/log/nginx/error.log warn"
+nginx_access_log: "/var/log/nginx/access.log main buffer=16k"
+nginx_vhosts:
+    -
+        listen: "80"
+        server_name: "workshop.vm"
+        root: "/var/www/workshop.vm/www"
+        error_log: "/var/log/nginx/workshop.error.log"
+        index: "index.php"
+        access_log: "/var/log/nginx/workshop.access.log"
+        extra_parameters: |
+            location / {
+                # try to serve file directly, fallback to app.php
+                try_files $uri /index.php$is_args$args;
+            }
+
+            location ~ ^/index\.php(/|$) {
+                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_split_path_info ^(.+\.php)(/.*)$;
+                include fastcgi_params;
+                fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+                fastcgi_param DOCUMENT_ROOT $realpath_root;
+
+                # Prevents URIs that include the front controller. This will 404:
+                # http://domain.tld/index.php/some-path
+                internal;
+            }

@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vars/all.yml
+  roles:
+    - server
+    - vagrant_local
+    - geerlingguy.php
+    - geerlingguy.php-xdebug
+    - geerlingguy.nginx
